@@ -1,0 +1,131 @@
+*Response*
+-The res object represents the HTTP response that an Express app sends when it gets an HTTP request
+-The res object sends data from the server to the client-side through HTTP requests.
+
+#Methods#
+
+res.send([body]):
+-Sends the HTTP response.
+-The .send() method on the res object forwards any data passed as an argument to the client-side.
+-The body parameter can be a Buffer object, a String, an object, Boolean, or an Array. 
+-The .send() method also defines its own built-in headers natively, depending on the Content-Type and Content-Length of the data.
+    res.send(Buffer.from('whoop'))
+    res.send({ some: 'json' })
+    res.send('<p>some html</p>')
+    res.status(404).send('Sorry, we cannot find that!')
+
+res.json([body]):
+-Sends a JSON response.
+    res.json(null)
+    res.json({ user: 'tobi' })
+    res.status(500).json({ error: 'message' })
+
+res.jsonp([body]):
+-Sends a JSON response with JSONP support. Identical to res.json
+
+res.status(code):
+-Sets the HTTP status for the response.
+    res.status(404).send('Not Found');
+
+    Informational responses (100 – 199)
+    Successful responses (200 – 299)
+    Redirection messages (300 – 399)
+    Client error responses (400 – 499)
+    Server error responses (500 – 599)
+
+res.sendstatus:
+-The .sendStatus() method is a shorthand syntax to adapt the functionality of both the .status() and .send() methods:
+    res.sendStatus(404);
+
+res.append(field[,value]):
+-Appends the specified value to the HTTP response header field. The value parameter can be a string or an array.
+    res.append('Link', ['<http://localhost/>', '<http://localhost:3000/>'])
+    res.append('Set-Cookie', 'foo=bar; Path=/; HttpOnly')
+    res.append('Content-Type', 'application/javascript; charset=UTF-8');
+    res.append('Connection', 'keep-alive')
+
+res.set(field [, value]):
+-Sets the response’s HTTP header field to value. To set multiple fields at once, pass an object as the parameter.
+    res.set('Content-Type', 'text/plain')
+
+    res.set({
+    'Content-Type': 'text/plain',
+    'Content-Length': '123',
+    ETag: '12345'
+    })
+
+res.get(field):
+-Returns the HTTP response header specified by field. The match is case-insensitive.
+    res.get('Content-Type')
+    // => "text/plain"
+
+res.type(type)
+-Sets the Content-Type HTTP header to the MIME type as determined by the specified type.
+    res.type('html') // => 'text/html'
+    res.type('json') // => 'application/json'
+    res.type('application/json') // => 'application/json'
+
+res.redirect([status,] path):
+-Redirects to the URL derived from the specified path, with specified status. If not specified, status defaults to 302 "Found".
+-The redirect() method on the res object will direct the client side to a different page.
+    res.redirect('/sharks/shark-facts')
+
+res.render(view [, locals] [, callback]):
+-Renders a view and sends the rendered HTML string to the client.
+-The .render() method accepts an HTML file as an argument and sends it to the client-side. 
+-The method also accepts an optional second argument, a locals object, with custom properties to define the file sent to the client-side.
+    app.get('/shark-game', (req, res) => {
+    res.render('shark.html', {status: 'good'});
+    });
+
+res.end([data] [, encoding]):
+-Ends the response process. It is recommended to use the .end() method as the last call in your response to the client-side.
+    res.end()
+    res.status(404).end()
+
+#Handling Files With the res Object#
+
+res.sendFile(path [, options] [, fn]):
+-Transfers the file at the given path.
+-To send HTML, CSS, and JavaScript files to the client side, use the .sendFile() method on the res object.
+    // GET https://sharks.com/gallery/shark-image.jpg
+
+    app.get('/gallery/:fileName', function (req, res, next) {
+
+    var options = {
+        root: path.join(__dirname, 'public')
+    };
+
+    res.sendFile(req.params.fileName, options, function (err) {
+        if (err) next(err);
+        else console.log('Sent:', fileName);
+    });
+    });
+-send the files stored in the public directory to the client-side.
+
+res.download(path [, filename] [, options] [, fn]):
+-Transfers the file at path as an “attachment”.
+-The .download() method sends and prompts the client-side to download a file and sets appropriate headers for the file type in one call.
+    // GET https://sharkss.com/gallery/shark-image.jpg
+
+    app.get('/gallery/:fileName', function(req, res){
+    const file = `${__dirname}/public/${req.params.fileName}`;
+    res.download(file);
+    });
+
+
+#cookie#
+
+res.cookie(name, value [, options]):
+-Sets cookie name to value. The value parameter may be a string or object converted to JSON.
+-All res.cookie() does is set the HTTP Set-Cookie header with the options provided. 
+    res.cookie('name', 'tobi', { domain: '.example.com', path: '/admin', secure: true })
+    res.cookie('rememberme', '1', { expires: new Date(Date.now() + 900000), httpOnly: true })
+    res.cookie('cart', { items: [1, 2, 3] }, { maxAge: 900000 })
+
+res.clearCookie(name [, options]):
+-Clears the cookie specified by name.
+-Web browsers and other compliant clients will only clear the cookie if the given options is identical to those given to res.cookie(), excluding expires and maxAge.
+    res.cookie('name', 'tobi', { path: '/admin' })
+    res.clearCookie('name', { path: '/admin' })
+

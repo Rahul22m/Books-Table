@@ -1,0 +1,110 @@
+  Express:
+-Express is a routing and middleware web framework that has minimal functionality of its own: 
+-An Express application is essentially a series of middleware function calls.
+
+What is routing?
+-Routing refers to how an application’s endpoints (URIs) respond to client requests. 
+-A Router instance is a complete middleware and routing system. (express.Router())
+
+What Are Routers and Controllers?
+Routers: 
+-Handle the routing of HTTP requests to the appropriate controller functions. They define the endpoints and HTTP methods (GET, POST, PUT, DELETE) for your application.
+Controllers: 
+-Contain the business logic for handling requests and generating responses. They perform tasks like querying the database, processing data, and returning responses to the client.
+
+What is Middleware?
+-It is those methods/functions/operations that are called BETWEEN processing the Request and 
+sending the Response in your application method.
+-Middlewares have access to the request object (req), the response object (res), and the next middleware function in the application’s request-response cycle. 
+    // Basic structure of a middleware function
+    function myMiddleware(req, res, next) {
+    // Do something
+    next(); // Call the next middleware
+    }
+-The next function is crucial; it passes control to the subsequent middleware. Without it, the request will hang.
+
+#Application-level middleware#
+-Bind application-level middleware to an instance of the app object by using the app.use() and app.METHOD().
+-Example shows a middleware function with no mount path. The function is executed every time the app receives a request.
+    app.use((req, res, next) => {
+    console.log('Time:', Date.now())
+    next()
+    })
+
+-Example shows a middleware function mounted on the /user/:id path. The function is executed for any type of HTTP request on the /user/:id path.
+    app.use('/user/:id', (req, res, next) => {
+    console.log('Request Type:', req.method)
+    next()
+    })
+
+-An example of loading a series of middleware functions at a mount point, with a mount path.
+    app.use('/user/:id', (req, res, next) => {
+    console.log('Request URL:', req.originalUrl)
+    next()
+    }, (req, res, next) => {
+    console.log('Request Type:', req.method)
+    next()
+    })
+
+-Middleware can also be declared in an array for reusability.
+    const logStuff = [logOriginalUrl, logMethod] //middlewares
+    app.get('/user/:id', logStuff, (req, res, next) => {
+    res.send('User Info')
+    })
+
+
+#Router-level middleware#
+-Router-level middleware works in the same way as application-level middleware, except it is bound to an instance of express.Router().
+-Load router-level middleware by using the router.use() and router.METHOD() functions.
+
+
+#Error-handling middleware#
+-It always takes four arguments. You must provide four arguments to identify it as an error-handling middleware function. Even if you don’t need to use the next object, you must specify it to maintain the signature.
+    app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(500).send('Something broke!')
+    })
+
+
+#Third-party middleware#
+
+body-parser:
+-Earlier in order for us to be able to read the “body” of an incoming object there was a piece of middleware called body-parser.
+
+var bodyParser = require('body-parser'); // calling body-parser to handle the Request Object from POST/PUT requests
+app.use(bodyParser.json()); // parse application/json, basically parse incoming Request Object as a JSON Object 
+app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded, basically can only parse incoming Request Object if strings or arrays
+app.use(bodyParser.urlencoded({ extended: true })); // combines the 2 above, then you can parse incoming Request Object if object, with nested objects, or generally any type.
+
+
+cookie-parser:
+
+
+#Built-in middleware#
+express.static():
+-serves static assets such as HTML files, images, and so on.
+
+express.json():
+-It is a built-in middleware function in express to recognize the incoming Request Object as a JSON Object.
+-It parses incoming requests with JSON payloads and is based on body-parser.
+-Express.json() expects request data to be sent in JSON format, which often resembles a simple JS object:
+    {"Name": "Pikachu", "Type": "Banana", "Number In Stable": 12}
+-Only parses JSON and only looks at requests where the Content-Type header matches the type option.
+
+
+express.urlencoded():
+-It is a built-in middleware function in express to recognize the incoming Request Object as strings or arrays.
+-It parses incoming requests with urlencoded payloads and is based on body-parser.
+-Express.urlencoded() expects request data to be sent encoded in the URL, usually in strings or arrays:
+    .../Name=Pikachu&Type=Banana&Number+In+Stable=12
+-Only parses urlencoded bodies and only looks at requests where the Content-Type header matches the type option.
+
+app.use(express.json()); // parse application/json, basically parse incoming Request Object as a JSON Object 
+app.use(express.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded, basically can only parse incoming Request Object if strings or arrays
+app.use(express.urlencoded({ extended: true })); // parse incoming Request Object if object, with nested objects, or generally any type.
+
+
+-You DO NOT NEED express.json() and express.urlencoded() for GET Requests or DELETE Requests.
+-You NEED express.json() and express.urlencoded() for POST and PUT requests, because in both these requests 
+you are sending data (in the form of some data object) to the server and you are asking the server to accept or 
+store that data (object), which is enclosed in the body (i.e. req.body) of that (POST or PUT) Request.
